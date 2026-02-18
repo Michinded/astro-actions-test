@@ -2,9 +2,16 @@
 export const prerender = false;
 
 import MainLayout from '../layouts/MainLayout.astro';
+import { getSession } from '../lib/auth';
+
+// Verificar auth ANTES de renderizar
+const user = getSession(Astro.cookies);
+if (!user) {
+  return Astro.redirect('/login');
+}
 ---
 
-<MainLayout title="Con JavaScript - Astro Actions">
+<MainLayout title="Con JavaScript - Astro Actions" user={user}>
   <h1>Con JavaScript <span class="badge">Sin recargar</span></h1>
   <p>El form se envía vía JavaScript. La página no recarga y la URL permanece limpia.</p>
 

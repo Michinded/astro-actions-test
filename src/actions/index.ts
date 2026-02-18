@@ -1,7 +1,40 @@
 import { defineAction, ActionError } from 'astro:actions';
 import { z } from 'astro/zod';
+import { findUser, createSession, destroySession } from '../lib/auth';
 
 export const server = {
+  // ==================== AUTH ====================
+
+  login: defineAction({
+    accept: 'form',
+    input: z.object({
+      username: z.string().min(1, 'El usuario es requerido'),
+      password: z.string().min(1, 'La contraseña es requerida'),
+    }),
+    handler: async ({ username, password }, context) => {
+      const user = findUser(username, password);
+
+      if (!user) {
+        throw new ActionError({
+          code: 'UNAUTHORIZED',
+          message: 'Usuario o contraseña incorrectos',
+        });
+      }
+
+      createSession(context.cookies, user);
+
+      return { ok: true, user: { nombre: user.nombre, username: user.username } };
+    },
+  }),
+
+  logout: defineAction({
+    handler: async (_, context) => {
+      destroySession(context.cookies);
+      return { ok: true };
+    },
+  }),
+
+  // ==================== FORMULARIOS ====================
   // Action básica (form POST sin JS)
   enviarAApi: defineAction({
     accept: 'form',

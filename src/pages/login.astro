@@ -1,0 +1,49 @@
+---
+export const prerender = false;
+
+import MainLayout from '../layouts/MainLayout.astro';
+import { actions } from 'astro:actions';
+import { isAuthenticated } from '../lib/auth';
+
+// Si ya está autenticado, redirigir al inicio
+if (isAuthenticated(Astro.cookies)) {
+  return Astro.redirect('/');
+}
+
+const result = Astro.getActionResult(actions.login);
+
+// Si login exitoso, redirigir
+if (result && !result.error) {
+  return Astro.redirect('/');
+}
+---
+
+<MainLayout title="Login - Astro Actions" user={null}>
+  <h1>Iniciar Sesión</h1>
+  <p>Usuarios de prueba: <code>admin/admin123</code>, <code>maria/maria123</code>, <code>juan/juan123</code></p>
+
+  {result?.error && (
+    <div class="err">
+      <p><strong>❌ Error:</strong> {result.error.message}</p>
+    </div>
+  )}
+
+  <form method="POST" action={actions.login}>
+    <label>
+      Usuario
+      <input name="username" required autocomplete="username" />
+    </label>
+
+    <label>
+      Contraseña
+      <input name="password" type="password" required autocomplete="current-password" />
+    </label>
+
+    <button type="submit">Entrar</button>
+  </form>
+</MainLayout>
+
+<script>
+  // Limpiar localStorage al cargar login (por si había datos previos)
+  localStorage.removeItem('userData');
+</script>

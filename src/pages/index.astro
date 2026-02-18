@@ -3,11 +3,18 @@ export const prerender = false;
 
 import MainLayout from '../layouts/MainLayout.astro';
 import { actions } from 'astro:actions';
+import { getSession } from '../lib/auth';
+
+// Verificar auth ANTES de renderizar
+const user = getSession(Astro.cookies);
+if (!user) {
+  return Astro.redirect('/login');
+}
 
 const result = Astro.getActionResult(actions.enviarAApi);
 ---
 
-<MainLayout title="Form POST - Astro Actions">
+<MainLayout title="Form POST - Astro Actions" user={user}>
   <h1>Form POST <span class="badge">Sin JavaScript</span></h1>
   <p>El navegador hace POST normal. La URL cambia a <code>?_action=enviarAApi</code> para que Astro identifique la action.</p>
 

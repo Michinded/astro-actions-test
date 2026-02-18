@@ -3,34 +3,32 @@ export const prerender = false;
 
 import MainLayout from '../layouts/MainLayout.astro';
 import { actions } from 'astro:actions';
+import { setActionResult, getActionResult } from '../lib/cookies';
+import { getSession } from '../lib/auth';
+
+// Verificar auth ANTES de renderizar
+const user = getSession(Astro.cookies);
+if (!user) {
+  return Astro.redirect('/login');
+}
 
 const result = Astro.getActionResult(actions.enviarAApi);
 
 // Si hay resultado exitoso, redirigir para limpiar la URL
 if (result && !result.error) {
-  // Guardamos el resultado en una cookie para mostrarlo después del redirect
-  const resultData = JSON.stringify(result.data);
-  Astro.cookies.set('actionResult', resultData, {
-    path: '/',
-    maxAge: 60,
-    httpOnly: true,  // No accesible desde JavaScript
-    sameSite: 'strict',  // Solo se envía en requests del mismo sitio
-    secure: import.meta.env.PROD,  // HTTPS en producción
-  });
+  setActionResult(Astro.cookies, result.data);
   return Astro.redirect('/con-redirect');
 }
 
 // Leemos el resultado de la cookie (si existe)
-const cookieResult = Astro.cookies.get('actionResult');
-let savedResult = null;
-if (cookieResult) {
-  savedResult = JSON.parse(cookieResult.value);
-  // Eliminamos la cookie después de leerla
-  Astro.cookies.delete('actionResult', { path: '/' });
+interface ActionResultData {
+  apiId: number;
+  echo: { title: string; body: string };
 }
+const savedResult = getActionResult<ActionResultData>(Astro.cookies);
 ---
 
-<MainLayout title="Con Redirect - Astro Actions">
+<MainLayout title="Con Redirect - Astro Actions" user={user}>
   <h1>Con Redirect <span class="badge">URL Limpia</span></h1>
   <p>Después de enviar, el servidor hace redirect para limpiar el parámetro <code>?_action</code> de la URL. Usamos una cookie temporal para preservar el resultado.</p>
 

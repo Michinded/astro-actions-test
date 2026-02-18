@@ -1,9 +1,13 @@
 ---
+import { actions } from 'astro:actions';
+import type { User } from '../lib/auth';
+
 interface Props {
   title: string;
+  user?: User | null;
 }
 
-const { title } = Astro.props;
+const { title, user = null } = Astro.props;
 const currentPath = Astro.url.pathname;
 ---
 
@@ -24,11 +28,18 @@ const currentPath = Astro.url.pathname;
         background: #1a1a2e;
         padding: 16px;
       }
-      nav {
+      .header-content {
         max-width: 720px;
         margin: 0 auto;
         display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
         gap: 16px;
+      }
+      nav {
+        display: flex;
+        gap: 12px;
         flex-wrap: wrap;
       }
       nav a {
@@ -44,6 +55,35 @@ const currentPath = Astro.url.pathname;
       }
       nav a.active {
         background: #6366f1;
+      }
+      .user-area {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .user-name {
+        color: #a5b4fc;
+        font-size: 14px;
+      }
+      .btn-auth {
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        background: #6366f1;
+        border: none;
+        font: inherit;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .btn-auth:hover {
+        background: #4f46e5;
+      }
+      .btn-logout {
+        background: #ef4444;
+      }
+      .btn-logout:hover {
+        background: #dc2626;
       }
       main {
         max-width: 720px;
@@ -86,26 +126,67 @@ const currentPath = Astro.url.pathname;
         color: #3730a3;
         margin-left: 8px;
       }
+      .welcome-msg {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+      }
     </style>
   </head>
 
   <body>
     <header>
-      <nav>
-        <a href="/" class:list={{ active: currentPath === '/' }}>
-          Form POST
-        </a>
-        <a href="/con-redirect" class:list={{ active: currentPath === '/con-redirect' }}>
-          Con Redirect
-        </a>
-        <a href="/con-js" class:list={{ active: currentPath === '/con-js' }}>
-          Con JavaScript
-        </a>
-      </nav>
+      <div class="header-content">
+        <nav>
+          <a href="/" class:list={{ active: currentPath === '/' }}>
+            Form POST
+          </a>
+          <a href="/con-redirect" class:list={{ active: currentPath === '/con-redirect' }}>
+            Con Redirect
+          </a>
+          <a href="/con-js" class:list={{ active: currentPath === '/con-js' }}>
+            Con JavaScript
+          </a>
+        </nav>
+
+        <div class="user-area">
+          {user ? (
+            <>
+              <span class="user-name">Hola, <span id="userName">{user.nombre}</span></span>
+              <form method="POST" action={actions.logout} style="display:inline; border:none; padding:0;">
+                <button type="submit" class="btn-auth btn-logout">Cerrar sesión</button>
+              </form>
+            </>
+          ) : (
+            <a href="/login" class="btn-auth">Iniciar sesión</a>
+          )}
+        </div>
+      </div>
     </header>
 
     <main>
+      {user && (
+        <div class="welcome-msg">
+          Bienvenido, <strong>{user.nombre}</strong>
+        </div>
+      )}
       <slot />
     </main>
+
+    <script>
+      // Sincronizar datos de usuario con localStorage
+      const userDataCookie = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('user_data='));
+
+      if (userDataCookie) {
+        const userData = JSON.parse(decodeURIComponent(userDataCookie.split('=')[1]));
+        localStorage.setItem('userData', JSON.stringify(userData));
+      } else {
+        localStorage.removeItem('userData');
+      }
+    </script>
   </body>
 </html>
