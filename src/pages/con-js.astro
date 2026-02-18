@@ -1,0 +1,72 @@
+---
+export const prerender = false;
+
+import MainLayout from '../layouts/MainLayout.astro';
+---
+
+<MainLayout title="Con JavaScript - Astro Actions">
+  <h1>Con JavaScript <span class="badge">Sin recargar</span></h1>
+  <p>El form se envía vía JavaScript. La página no recarga y la URL permanece limpia.</p>
+
+  <div id="resultado"></div>
+
+  <form id="miForm">
+    <label>
+      Nombre
+      <input name="nombre" required />
+    </label>
+
+    <label>
+      Mensaje
+      <textarea name="mensaje" required></textarea>
+    </label>
+
+    <button type="submit">Enviar</button>
+  </form>
+
+  <script>
+    import { actions } from 'astro:actions';
+
+    const form = document.getElementById('miForm') as HTMLFormElement;
+    const resultado = document.getElementById('resultado') as HTMLDivElement;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const nombre = formData.get('nombre') as string;
+      const mensaje = formData.get('mensaje') as string;
+
+      resultado.innerHTML = '<p>Enviando...</p>';
+
+      try {
+        const { data, error } = await actions.enviarConJs({ nombre, mensaje });
+
+        if (error) {
+          resultado.innerHTML = `
+            <div class="err">
+              <p><strong>❌ Error:</strong> ${error.message}</p>
+            </div>
+          `;
+          return;
+        }
+
+        resultado.innerHTML = `
+          <div class="ok">
+            <p><strong>✅ Enviado!</strong> La API respondió con <code>id=${data.apiId}</code></p>
+            <p><strong>Echo:</strong></p>
+            <pre>${JSON.stringify(data.echo, null, 2)}</pre>
+          </div>
+        `;
+
+        form.reset();
+      } catch (err) {
+        resultado.innerHTML = `
+          <div class="err">
+            <p><strong>❌ Error:</strong> Ocurrió un error inesperado.</p>
+          </div>
+        `;
+      }
+    });
+  </script>
+</MainLayout>

@@ -1,11 +1,42 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+export const prerender = false;
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import MainLayout from '../layouts/MainLayout.astro';
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.enviarAApi);
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<MainLayout title="Form POST - Astro Actions">
+  <h1>Form POST <span class="badge">Sin JavaScript</span></h1>
+  <p>El navegador hace POST normal. La URL cambia a <code>?_action=enviarAApi</code> para que Astro identifique la action.</p>
+
+  {result && !result.error && (
+    <div class="ok">
+      <p><strong>✅ Enviado!</strong> La API respondió con <code>id={result.data.apiId}</code></p>
+      <p><strong>Echo:</strong></p>
+      <pre>{JSON.stringify(result.data.echo, null, 2)}</pre>
+    </div>
+  )}
+
+  {result?.error && (
+    <div class="err">
+      <p><strong>❌ Error:</strong> No se pudo enviar.</p>
+      <p>Intenta de nuevo.</p>
+    </div>
+  )}
+
+  <form method="POST" action={actions.enviarAApi}>
+    <label>
+      Nombre
+      <input name="nombre" required />
+    </label>
+
+    <label>
+      Mensaje
+      <textarea name="mensaje" required></textarea>
+    </label>
+
+    <button type="submit">Enviar</button>
+  </form>
+</MainLayout>
