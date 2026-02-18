@@ -468,11 +468,10 @@ Cannot find action 'enviarAApi'
 
 ---
 
-## Siguiente Paso
+## Documentación Relacionada
 
-Con estos fundamentos puedes:
-
-1. Agregar más actions siguiendo los patrones
-2. Implementar middleware para auth centralizada
-3. Conectar a una base de datos real
-4. Implementar JWT para tokens firmados
+| Documento | Contenido |
+|-----------|-----------|
+| [01-fundamentos.md](./01-fundamentos.md) | Cookies seguras, autenticación básica |
+| [03-middleware-jwt.md](./03-middleware-jwt.md) | Middleware para auth centralizada con JWT |
+| [04-organizacion-actions.md](./04-organizacion-actions.md) | Organizar actions en múltiples archivos |

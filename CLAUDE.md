@@ -15,13 +15,29 @@ pnpm astro      # Run Astro CLI commands (e.g., pnpm astro add, pnpm astro check
 
 This is an Astro 5 project configured for server-side rendering (SSR) with the Node.js standalone adapter.
 
-**Routing:** File-based routing in `src/pages/` - files automatically become routes (e.g., `src/pages/index.astro` → `/`)
+**Routing:** File-based routing in `src/pages/` - files automatically become routes
 
-**Component Structure:**
-- `src/layouts/` - HTML document wrappers (Layout.astro provides base HTML structure)
-- `src/components/` - Reusable .astro components
-- `src/assets/` - Static assets (SVGs, images)
+**Key Directories:**
+- `src/actions/` - Server actions (can be split into multiple files, re-exported from index.ts)
+- `src/lib/` - Utilities (cookies, auth, api helpers)
+- `src/layouts/` - HTML document wrappers
+- `src/pages/app/` - Protected routes (require auth via middleware)
+- `src/middleware.ts` - Route protection for `/app/*`
+
+**Auth Flow:**
+- JWT stored in httpOnly cookie
+- Middleware checks cookie existence for protected routes
+- Actions validate token with backend on API calls
+- 401 responses trigger session cleanup and redirect to login
 
 **Configuration:**
-- `astro.config.mjs` - Astro configuration with `output: 'server'` and `@astrojs/node` adapter in standalone mode
-- Build output goes to `./dist/`
+- `astro.config.mjs` - SSR mode with `@astrojs/node` adapter
+- `src/env.d.ts` - Types for `Astro.locals` (user, token)
+
+## Documentation
+
+Detailed documentation is available in `docs/`:
+- `01-fundamentos.md` - Cookies, auth basics, security
+- `02-tipos-de-actions.md` - Form POST, Redirect, JavaScript methods
+- `03-middleware-jwt.md` - Middleware, JWT, external backend
+- `04-organizacion-actions.md` - Splitting actions into multiple files
