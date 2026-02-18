@@ -1,0 +1,225 @@
+---
+import { actions } from 'astro:actions';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+const user = Astro.locals.user;
+const currentPath = Astro.url.pathname;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: #f5f5f5;
+      }
+      header {
+        background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+        padding: 16px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      }
+      .header-content {
+        max-width: 900px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      .logo {
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-decoration: none;
+      }
+      nav {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      nav a {
+        color: rgba(255,255,255,0.9);
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+      nav a:hover {
+        background: rgba(255,255,255,0.15);
+      }
+      nav a.active {
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+      }
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .user-badge {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+      }
+      .btn {
+        padding: 8px 20px;
+        border-radius: 8px;
+        border: none;
+        font: inherit;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+      }
+      .btn-primary {
+        background: #4ade80;
+        color: #1a1a1a;
+      }
+      .btn-primary:hover {
+        background: #22c55e;
+      }
+      .btn-danger {
+        background: #ef4444;
+        color: #fff;
+      }
+      .btn-danger:hover {
+        background: #dc2626;
+      }
+      main {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px;
+      }
+      .card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      }
+      form.app-form {
+        display: grid;
+        gap: 16px;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .form-group label {
+        font-weight: 500;
+        color: #374151;
+      }
+      .form-group input,
+      .form-group textarea {
+        padding: 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font: inherit;
+        transition: border-color 0.2s;
+      }
+      .form-group input:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #2d5a87;
+      }
+      .alert {
+        padding: 16px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+      }
+      .alert-success {
+        background: #dcfce7;
+        border: 1px solid #86efac;
+        color: #166534;
+      }
+      .alert-error {
+        background: #fee2e2;
+        border: 1px solid #fca5a5;
+        color: #991b1b;
+      }
+      .alert-info {
+        background: #dbeafe;
+        border: 1px solid #93c5fd;
+        color: #1e40af;
+      }
+      code {
+        background: #f3f4f6;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.9em;
+      }
+      pre {
+        background: #1e293b;
+        color: #e2e8f0;
+        padding: 16px;
+        border-radius: 8px;
+        overflow-x: auto;
+      }
+      .logout-form {
+        display: inline;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="header-content">
+        <a href="/home" class="logo">App Demo</a>
+
+        <nav>
+          {user ? (
+            <>
+              <a href="/app/dashboard" class:list={{ active: currentPath === '/app/dashboard' }}>
+                Dashboard
+              </a>
+              <div class="user-info">
+                <span class="user-badge">{user.username}</span>
+                <form id="logoutForm" class="logout-form">
+                  <button type="submit" class="btn btn-danger">Salir</button>
+                </form>
+              </div>
+            </>
+          ) : (
+            <a href="/app/login" class="btn btn-primary">Iniciar sesión</a>
+          )}
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <script>
+      import { actions } from 'astro:actions';
+
+      const logoutForm = document.getElementById('logoutForm');
+
+      logoutForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        try {
+          await actions.appLogout();
+          window.location.href = '/home';
+        } catch (error) {
+          console.error('Error al cerrar sesión:', error);
+          window.location.href = '/home';
+        }
+      });
+    </script>
+  </body>
+</html>

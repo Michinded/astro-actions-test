@@ -1,0 +1,143 @@
+---
+export const prerender = false;
+
+import AppLayout from '../../layouts/AppLayout.astro';
+
+// El middleware ya validó que hay token
+// Estos datos vienen del middleware
+const { user, token } = Astro.locals;
+
+// Decodificar token para mostrar info
+const tokenPayload = token ? JSON.parse(atob(token.split('.')[1])) : null;
+const tokenExp = tokenPayload?.exp ? new Date(tokenPayload.exp * 1000) : null;
+---
+
+<AppLayout title="Dashboard - App Demo">
+  <div class="card">
+    <h1 style="margin-top: 0; color: #1e3a5f;">Dashboard</h1>
+
+    <div class="alert alert-info">
+      <strong>Sesión activa</strong><br>
+      Usuario: <code>{user?.username}</code><br>
+      Token expira: <code id="tokenExpiry">{tokenExp?.toLocaleTimeString()}</code>
+      <span id="countdown" style="margin-left: 8px;"></span>
+    </div>
+
+    <h2 style="color: #2d5a87;">Formulario de prueba</h2>
+    <p>Este formulario usa JavaScript para enviar datos. La action verifica que el token sigue válido antes de procesar.</p>
+
+    <div id="resultado"></div>
+
+    <form id="testForm" class="app-form">
+      <div class="form-group">
+        <label for="mensaje">Mensaje</label>
+        <input
+          type="text"
+          id="mensaje"
+          name="mensaje"
+          required
+          placeholder="Escribe algo..."
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        Enviar al "Backend"
+      </button>
+    </form>
+  </div>
+
+  <div class="card" style="margin-top: 24px;">
+    <h2 style="margin-top: 0; color: #2d5a87;">Info del Token (Debug)</h2>
+    <pre>{JSON.stringify(tokenPayload, null, 2)}</pre>
+  </div>
+</AppLayout>
+
+<script>
+  import { actions } from 'astro:actions';
+
+  const form = document.getElementById('testForm') as HTMLFormElement;
+  const resultado = document.getElementById('resultado') as HTMLDivElement;
+  const countdown = document.getElementById('countdown') as HTMLSpanElement;
+  const tokenExpiryEl = document.getElementById('tokenExpiry') as HTMLElement;
+
+  // Countdown hasta expiración
+  function updateCountdown() {
+    const expiryText = tokenExpiryEl?.textContent;
+    if (!expiryText) return;
+
+    const now = new Date();
+    const today = now.toDateString();
+    const expiry = new Date(`${today} ${expiryText}`);
+    const diff = expiry.getTime() - now.getTime();
+
+    if (diff <= 0) {
+      countdown.innerHTML = '<strong style="color: #dc2626;">(EXPIRADO)</strong>';
+      return;
+    }
+
+    const mins = Math.floor(diff / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    countdown.innerHTML = `<strong>(${mins}:${secs.toString().padStart(2, '0')} restantes)</strong>`;
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  // Form submit
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const mensaje = formData.get('mensaje') as string;
+
+    resultado.innerHTML = '<div class="alert alert-info">Enviando...</div>';
+
+    try {
+      const { data, error } = await actions.appSubmitData({ mensaje });
+
+      if (error) {
+        // Verificar si es error de sesión expirada
+        if (error.message === 'SESSION_EXPIRED' || error.code === 'UNAUTHORIZED') {
+          resultado.innerHTML = `
+            <div class="alert alert-error">
+              <strong>Sesión expirada</strong><br>
+              Redirigiendo al login...
+            </div>
+          `;
+          setTimeout(() => {
+            window.location.href = '/app/login';
+          }, 2000);
+          return;
+        }
+
+        resultado.innerHTML = `
+          <div class="alert alert-error">
+            <strong>Error:</strong> ${error.message}
+          </div>
+        `;
+        return;
+      }
+
+      resultado.innerHTML = `
+        <div class="alert alert-success">
+          <strong>Respuesta del "Backend":</strong>
+          <pre style="margin: 8px 0 0; background: rgba(0,0,0,0.1); padding: 8px; border-radius: 4px;">${JSON.stringify(data, null, 2)}</pre>
+        </div>
+      `;
+
+      form.reset();
+    } catch (err) {
+      resultado.innerHTML = `
+        <div class="alert alert-error">
+          <strong>Error inesperado</strong>
+        </div>
+      `;
+    }
+  });
+</script>
+
+<style>
+  h2 {
+    margin-top: 32px;
+  }
+</style>

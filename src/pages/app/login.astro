@@ -1,0 +1,59 @@
+---
+export const prerender = false;
+
+import AppLayout from '../../layouts/AppLayout.astro';
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.appLogin);
+
+// Si login exitoso, redirigir a dashboard
+if (result && !result.error) {
+  return Astro.redirect('/app/dashboard');
+}
+---
+
+<AppLayout title="Login - App Demo">
+  <div class="card" style="max-width: 400px; margin: 0 auto;">
+    <h1 style="margin-top: 0; text-align: center; color: #1e3a5f;">Iniciar Sesión</h1>
+
+    {result?.error && (
+      <div class="alert alert-error">
+        {result.error.message}
+      </div>
+    )}
+
+    <form method="POST" action={actions.appLogin} class="app-form">
+      <div class="form-group">
+        <label for="username">Usuario</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          required
+          autocomplete="username"
+          placeholder="demo"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          autocomplete="current-password"
+          placeholder="demo123"
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+        Entrar
+      </button>
+    </form>
+
+    <p style="text-align: center; margin-top: 24px; color: #6b7280; font-size: 14px;">
+      Prueba con <code>demo</code> / <code>demo123</code>
+    </p>
+  </div>
+</AppLayout>

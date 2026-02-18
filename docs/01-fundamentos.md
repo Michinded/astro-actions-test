@@ -338,6 +338,10 @@ Archivo: `src/data/users.json`
 
 ---
 
-## Siguiente Paso
+## Documentación Relacionada
 
-Ver [02-tipos-de-actions.md](./02-tipos-de-actions.md) para aprender los diferentes métodos de envío de formularios con Astro Actions.
+| Documento | Contenido |
+|-----------|-----------|
+| [02-tipos-de-actions.md](./02-tipos-de-actions.md) | Métodos de envío de formularios (POST, Redirect, JS) |
+| [03-middleware-jwt.md](./03-middleware-jwt.md) | Middleware, JWT en cookies, backend externo |
+| [04-organizacion-actions.md](./04-organizacion-actions.md) | Organizar actions en múltiples archivos |

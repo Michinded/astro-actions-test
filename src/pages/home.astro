@@ -1,0 +1,66 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+---
+
+<AppLayout title="Home - App Demo">
+  <div class="card">
+    <h1>Bienvenido a App Demo</h1>
+    <p>Esta es una demostración de Astro con:</p>
+
+    <ul>
+      <li><strong>Middleware</strong> para proteger rutas</li>
+      <li><strong>Cookies seguras</strong> para almacenar el token</li>
+      <li><strong>JWT simulado</strong> con expiración de 10 minutos</li>
+      <li><strong>Actions con JavaScript</strong> que validan el token</li>
+    </ul>
+
+    <h2>Flujo de la aplicación</h2>
+    <ol>
+      <li>El usuario inicia sesión en <code>/app/login</code></li>
+      <li>El "backend" devuelve un JWT y se guarda en cookie</li>
+      <li>El middleware protege <code>/app/*</code></li>
+      <li>En <code>/app/dashboard</code> hay un formulario que usa el token</li>
+      <li>Si el token expira, el "backend" devuelve 401 y se redirige a login</li>
+    </ol>
+
+    <h2>Usuarios de prueba</h2>
+    <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+      <thead>
+        <tr style="background: #f3f4f6;">
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Usuario</th>
+          <th style="padding: 12px; text-align: left; border-bottom: 2px solid #e5e7eb;">Contraseña</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><code>demo</code></td>
+          <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><code>demo123</code></td>
+        </tr>
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><code>test</code></td>
+          <td style="padding: 12px; border-bottom: 1px solid #e5e7eb;"><code>test123</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 24px;">
+      <a href="/app/login" class="btn btn-primary" style="display: inline-block;">
+        Ir al Login
+      </a>
+    </div>
+  </div>
+</AppLayout>
+
+<style>
+  h1 {
+    color: #1e3a5f;
+    margin-top: 0;
+  }
+  h2 {
+    color: #2d5a87;
+    margin-top: 32px;
+  }
+  ul, ol {
+    line-height: 1.8;
+  }
+</style>

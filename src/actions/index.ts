@@ -1,8 +1,84 @@
 import { defineAction, ActionError } from 'astro:actions';
 import { z } from 'astro/zod';
 import { findUser, createSession, destroySession } from '../lib/auth';
+import { AUTH_COOKIE, mockBackendLogin, mockBackendRequest } from '../lib/api';
 
 export const server = {
+  // ==================== APP (Con Middleware) ====================
+
+  appLogin: defineAction({
+    accept: 'form',
+    input: z.object({
+      username: z.string().min(1, 'El usuario es requerido'),
+      password: z.string().min(1, 'La contraseña es requerida'),
+    }),
+    handler: async ({ username, password }, context) => {
+      // Llamar al "backend" para login
+      const result = await mockBackendLogin(username, password);
+
+      if (!result.success) {
+        throw new ActionError({
+          code: 'UNAUTHORIZED',
+          message: result.error,
+        });
+      }
+
+      // Guardar token en cookie (el backend nos dice cuánto dura)
+      context.cookies.set(AUTH_COOKIE.name, result.token, AUTH_COOKIE.options);
+
+      return { ok: true, user: result.user };
+    },
+  }),
+
+  appLogout: defineAction({
+    accept: 'form',
+    handler: async (_, context) => {
+      context.cookies.delete(AUTH_COOKIE.name, { path: '/' });
+      return { ok: true };
+    },
+  }),
+
+  appSubmitData: defineAction({
+    input: z.object({
+      mensaje: z.string().min(1, 'El mensaje es requerido'),
+    }),
+    handler: async ({ mensaje }, context) => {
+      // Obtener token de la cookie
+      const token = context.cookies.get(AUTH_COOKIE.name)?.value;
+
+      if (!token) {
+        throw new ActionError({
+          code: 'UNAUTHORIZED',
+          message: 'SESSION_EXPIRED',
+        });
+      }
+
+      // Llamar al "backend" con el token
+      const result = await mockBackendRequest(token, '/api/data/submit');
+
+      // Si el backend dice 401, la sesión expiró
+      if (result.status === 401) {
+        context.cookies.delete(AUTH_COOKIE.name, { path: '/' });
+        throw new ActionError({
+          code: 'UNAUTHORIZED',
+          message: 'SESSION_EXPIRED',
+        });
+      }
+
+      if (result.status !== 200) {
+        throw new ActionError({
+          code: 'BAD_REQUEST',
+          message: result.error || 'Error del servidor',
+        });
+      }
+
+      return {
+        ok: true,
+        mensaje,
+        backendResponse: result.data,
+      };
+    },
+  }),
   // ==================== AUTH ====================
 
   login: defineAction({
