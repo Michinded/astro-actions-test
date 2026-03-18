@@ -1,0 +1,23 @@
+{
+  "skill_name": "astro-action-spa",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to add a feedback form to my Astro page that submits without reloading. When the user clicks send, show a 'Sending...' message, then show success or error. The form has name and comment fields. Keep it SPA-style with no page refresh.",
+      "expected_output": "A JavaScript-based action without accept: 'form', page with form id but no action attribute, script with e.preventDefault(), loading state shown, { data, error } handling, DOM updated dynamically",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Build a simple todo list with Astro actions. I need to create todos, list them, and delete them - all without page reload. Show the list automatically when the page loads and update it after each operation.",
+      "expected_output": "CRUD actions in separate file, actions for list/create/delete, page with loadTodos function called on init, event handlers for create and delete, list re-renders after each operation",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I have an Astro action that calls an external API and sometimes fails. How do I properly handle errors with ActionError and show them to the user? The action should return a proper error code when the API fails.",
+      "expected_output": "Action uses ActionError with code and message, handler catches API failures and throws ActionError, client-side checks error.code and error.message, user-friendly error display",
+      "files": []
+    }
+  ]
+}
