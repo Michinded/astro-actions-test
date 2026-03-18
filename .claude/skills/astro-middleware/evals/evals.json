@@ -1,0 +1,29 @@
+{
+  "skill_name": "astro-middleware",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to protect all routes under /dashboard in my Astro app. If the user doesn't have a session_token cookie, redirect them to /login. If they do have a token, let them through.",
+      "expected_output": "Middleware with defineMiddleware, checks pathname.startsWith('/dashboard'), reads session_token cookie, redirects to /login if missing, calls next() if present",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "My middleware needs to do three things: 1) log all requests with timing, 2) check authentication for /app/* routes, 3) check admin role for /admin/* routes. How do I organize multiple validations in Astro middleware?",
+      "expected_output": "Either sequential checks in one middleware OR use sequence() to compose multiple defineMiddleware functions. Shows logging middleware, auth middleware, and rbac middleware composed together",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I want to pass the authenticated user's data from middleware to my pages. How do I set up context.locals properly with TypeScript types so I can access user.id and user.email in my Astro pages?",
+      "expected_output": "Middleware sets context.locals.user = {...}, env.d.ts declares App.Locals interface with user property typed, page accesses Astro.locals.user with full type support",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "I have JWT tokens stored in cookies. In my middleware, I want to decode the JWT to get user info and pass it to pages, but I don't want to validate the signature in middleware - my backend API will do that. How should I structure this?",
+      "expected_output": "Middleware reads cookie, decodes JWT payload without verification, extracts user data, sets context.locals.token and context.locals.user, explains that backend validates on actual API calls",
+      "files": []
+    }
+  ]
+}
