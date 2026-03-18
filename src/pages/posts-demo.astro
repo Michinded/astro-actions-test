@@ -1,0 +1,405 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { actions } from 'astro:actions';
+import { getAllPosts } from '../lib/db';
+
+// Obtener posts iniciales para SSR
+const posts = getAllPosts();
+
+// Manejar resultados de actions (form POST tradicional)
+const createResult = Astro.getActionResult(actions.posts.create);
+const updateResult = Astro.getActionResult(actions.posts.update);
+const deleteResult = Astro.getActionResult(actions.posts.delete);
+
+// Recargar posts después de cualquier acción exitosa
+const currentPosts = (createResult?.data || updateResult?.data || deleteResult?.data)
+  ? getAllPosts()
+  : posts;
+---
+
+<Layout title="Demo CRUD - Múltiples Actions">
+  <main>
+    <h1>Demo: Múltiples Actions en una Página</h1>
+    <p class="intro">
+      Esta página demuestra cómo usar múltiples actions de Astro con diferentes formularios.
+      Cada formulario apunta a una action diferente usando el atributo <code>action</code>.
+    </p>
+
+    <div class="grid">
+      <!-- ============ FORMULARIO 1: CREAR POST ============ -->
+      <section class="card">
+        <h2>📝 Crear Nuevo Post</h2>
+        <form method="POST" action={actions.posts.create}>
+          <div class="field">
+            <label for="create-titulo">Título:</label>
+            <input
+              type="text"
+              id="create-titulo"
+              name="titulo"
+              required
+              maxlength="100"
+              placeholder="Escribe el título..."
+            />
+          </div>
+          <div class="field">
+            <label for="create-contenido">Contenido:</label>
+            <textarea
+              id="create-contenido"
+              name="contenido"
+              required
+              rows="3"
+              placeholder="Escribe el contenido..."
+            ></textarea>
+          </div>
+          <button type="submit" class="btn-primary">Crear Post</button>
+        </form>
+
+        {createResult?.error && (
+          <div class="error">
+            Error: {createResult.error.message}
+          </div>
+        )}
+        {createResult?.data && (
+          <div class="success">
+            ✅ Post creado: "{createResult.data.post.titulo}"
+          </div>
+        )}
+      </section>
+
+      <!-- ============ FORMULARIO 2: EDITAR POST ============ -->
+      <section class="card">
+        <h2>✏️ Editar Post</h2>
+        <form method="POST" action={actions.posts.update}>
+          <div class="field">
+            <label for="edit-id">ID del Post:</label>
+            <select id="edit-id" name="id" required>
+              <option value="">Selecciona un post...</option>
+              {currentPosts.map(post => (
+                <option value={post.id}>{post.titulo}</option>
+              ))}
+            </select>
+          </div>
+          <div class="field">
+            <label for="edit-titulo">Nuevo Título:</label>
+            <input
+              type="text"
+              id="edit-titulo"
+              name="titulo"
+              required
+              maxlength="100"
+              placeholder="Nuevo título..."
+            />
+          </div>
+          <div class="field">
+            <label for="edit-contenido">Nuevo Contenido:</label>
+            <textarea
+              id="edit-contenido"
+              name="contenido"
+              required
+              rows="3"
+              placeholder="Nuevo contenido..."
+            ></textarea>
+          </div>
+          <button type="submit" class="btn-warning">Actualizar Post</button>
+        </form>
+
+        {updateResult?.error && (
+          <div class="error">
+            Error: {updateResult.error.message}
+          </div>
+        )}
+        {updateResult?.data && (
+          <div class="success">
+            ✅ Post actualizado: "{updateResult.data.post.titulo}"
+          </div>
+        )}
+      </section>
+    </div>
+
+    <!-- ============ LISTA DE POSTS CON BOTONES DE ELIMINAR ============ -->
+    <section class="posts-list">
+      <h2>📋 Posts Existentes ({currentPosts.length})</h2>
+
+      {currentPosts.length === 0 ? (
+        <p class="empty">No hay posts. ¡Crea uno arriba!</p>
+      ) : (
+        <div class="posts">
+          {currentPosts.map(post => (
+            <article class="post-item">
+              <div class="post-content">
+                <h3>{post.titulo}</h3>
+                <p>{post.contenido}</p>
+                <small>ID: {post.id}</small>
+              </div>
+
+              <!-- FORMULARIO 3: ELIMINAR (uno por cada post) -->
+              <form method="POST" action={actions.posts.delete} class="delete-form">
+                <input type="hidden" name="id" value={post.id} />
+                <button type="submit" class="btn-danger" title="Eliminar post">
+                  🗑️ Eliminar
+                </button>
+              </form>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {deleteResult?.error && (
+        <div class="error">
+          Error al eliminar: {deleteResult.error.message}
+        </div>
+      )}
+      {deleteResult?.data && (
+        <div class="success">
+          ✅ Post eliminado correctamente
+        </div>
+      )}
+    </section>
+
+    <!-- ============ SECCIÓN EDUCATIVA ============ -->
+    <section class="info">
+      <h2>💡 ¿Cómo funciona?</h2>
+      <ul>
+        <li>Cada <code>&lt;form&gt;</code> tiene su propio <code>action={actions.posts.XXX}</code></li>
+        <li>Al enviar, Astro ejecuta la action correspondiente en el servidor</li>
+        <li>Usamos <code>Astro.getActionResult()</code> para obtener el resultado</li>
+        <li>Los posts se guardan en memoria del servidor (se resetean al reiniciar)</li>
+      </ul>
+
+      <h3>Código clave:</h3>
+      <pre><code>{`// En el frontmatter (---)
+const createResult = Astro.getActionResult(actions.posts.create);
+const updateResult = Astro.getActionResult(actions.posts.update);
+const deleteResult = Astro.getActionResult(actions.posts.delete);
+
+// En el HTML
+<form method="POST" action={actions.posts.create}>
+<form method="POST" action={actions.posts.update}>
+<form method="POST" action={actions.posts.delete}>`}</code></pre>
+    </section>
+
+    <a href="/" class="back-link">← Volver al inicio</a>
+  </main>
+</Layout>
+
+<style>
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  h1 {
+    color: #333;
+    margin-bottom: 0.5rem;
+  }
+
+  .intro {
+    color: #666;
+    margin-bottom: 2rem;
+  }
+
+  .intro code {
+    background: #f0f0f0;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  .card h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: #333;
+  }
+
+  .field {
+    margin-bottom: 1rem;
+  }
+
+  .field label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-weight: 500;
+    color: #555;
+  }
+
+  .field input,
+  .field textarea,
+  .field select {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+
+  button {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .btn-primary {
+    background: #0066cc;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #0055aa;
+  }
+
+  .btn-warning {
+    background: #ff9900;
+    color: white;
+  }
+
+  .btn-warning:hover {
+    background: #dd8800;
+  }
+
+  .btn-danger {
+    background: #dc3545;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background: #bb2d3b;
+  }
+
+  .error {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: #ffebee;
+    color: #c62828;
+    border-radius: 4px;
+  }
+
+  .success {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 4px;
+  }
+
+  .posts-list {
+    background: #f9f9f9;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .posts-list h2 {
+    margin-top: 0;
+  }
+
+  .empty {
+    color: #888;
+    font-style: italic;
+  }
+
+  .posts {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .post-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: white;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #eee;
+  }
+
+  .post-content {
+    flex: 1;
+  }
+
+  .post-content h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+  }
+
+  .post-content p {
+    margin: 0 0 0.5rem 0;
+    color: #666;
+  }
+
+  .post-content small {
+    color: #999;
+    font-family: monospace;
+  }
+
+  .delete-form {
+    margin-left: 1rem;
+  }
+
+  .info {
+    background: #e3f2fd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .info h2 {
+    margin-top: 0;
+    color: #1565c0;
+  }
+
+  .info h3 {
+    margin-bottom: 0.5rem;
+  }
+
+  .info ul {
+    margin: 0 0 1rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .info li {
+    margin-bottom: 0.5rem;
+  }
+
+  .info code {
+    background: #bbdefb;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+  }
+
+  .info pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+  }
+
+  .back-link {
+    display: inline-block;
+    color: #0066cc;
+    text-decoration: none;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+</style>
