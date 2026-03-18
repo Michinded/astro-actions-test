@@ -1,35 +1,19 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { actions } from 'astro:actions';
-import { getAllPosts } from '../lib/db';
-
-// Obtener posts iniciales para SSR
-const posts = getAllPosts();
-
-// Manejar resultados de actions (form POST tradicional)
-const createResult = Astro.getActionResult(actions.postsCreate);
-const updateResult = Astro.getActionResult(actions.postsUpdate);
-const deleteResult = Astro.getActionResult(actions.postsDelete);
-
-// Recargar posts después de cualquier acción exitosa
-const currentPosts = (createResult?.data || updateResult?.data || deleteResult?.data)
-  ? getAllPosts()
-  : posts;
 ---
 
-<Layout title="Demo CRUD - Múltiples Actions">
+<Layout title="Demo CRUD - Múltiples Actions con JS">
   <main>
-    <h1>Demo: Múltiples Actions en una Página</h1>
+    <h1>Demo: Múltiples Actions con JavaScript</h1>
     <p class="intro">
-      Esta página demuestra cómo usar múltiples actions de Astro con diferentes formularios.
-      Cada formulario apunta a una action diferente usando el atributo <code>action</code>.
+      CRUD completo sin recargar la página. Cada formulario llama a una action diferente vía JS.
     </p>
 
     <div class="grid">
       <!-- ============ FORMULARIO 1: CREAR POST ============ -->
       <section class="card">
         <h2>📝 Crear Nuevo Post</h2>
-        <form method="POST" action={actions.postsCreate}>
+        <form id="createForm">
           <div class="field">
             <label for="create-titulo">Título:</label>
             <input
@@ -53,30 +37,17 @@ const currentPosts = (createResult?.data || updateResult?.data || deleteResult?.
           </div>
           <button type="submit" class="btn-primary">Crear Post</button>
         </form>
-
-        {createResult?.error && (
-          <div class="error">
-            Error: {createResult.error.message}
-          </div>
-        )}
-        {createResult?.data && (
-          <div class="success">
-            ✅ Post creado: "{createResult.data.post.titulo}"
-          </div>
-        )}
+        <div id="createResult"></div>
       </section>
 
       <!-- ============ FORMULARIO 2: EDITAR POST ============ -->
       <section class="card">
         <h2>✏️ Editar Post</h2>
-        <form method="POST" action={actions.postsUpdate}>
+        <form id="updateForm">
           <div class="field">
-            <label for="edit-id">ID del Post:</label>
+            <label for="edit-id">Selecciona post:</label>
             <select id="edit-id" name="id" required>
-              <option value="">Selecciona un post...</option>
-              {currentPosts.map(post => (
-                <option value={post.id}>{post.titulo}</option>
-              ))}
+              <option value="">Cargando...</option>
             </select>
           </div>
           <div class="field">
@@ -102,85 +73,211 @@ const currentPosts = (createResult?.data || updateResult?.data || deleteResult?.
           </div>
           <button type="submit" class="btn-warning">Actualizar Post</button>
         </form>
-
-        {updateResult?.error && (
-          <div class="error">
-            Error: {updateResult.error.message}
-          </div>
-        )}
-        {updateResult?.data && (
-          <div class="success">
-            ✅ Post actualizado: "{updateResult.data.post.titulo}"
-          </div>
-        )}
+        <div id="updateResult"></div>
       </section>
     </div>
 
-    <!-- ============ LISTA DE POSTS CON BOTONES DE ELIMINAR ============ -->
+    <!-- ============ LISTA DE POSTS ============ -->
     <section class="posts-list">
-      <h2>📋 Posts Existentes ({currentPosts.length})</h2>
-
-      {currentPosts.length === 0 ? (
-        <p class="empty">No hay posts. ¡Crea uno arriba!</p>
-      ) : (
-        <div class="posts">
-          {currentPosts.map(post => (
-            <article class="post-item">
-              <div class="post-content">
-                <h3>{post.titulo}</h3>
-                <p>{post.contenido}</p>
-                <small>ID: {post.id}</small>
-              </div>
-
-              <!-- FORMULARIO 3: ELIMINAR (uno por cada post) -->
-              <form method="POST" action={actions.postsDelete} class="delete-form">
-                <input type="hidden" name="id" value={post.id} />
-                <button type="submit" class="btn-danger" title="Eliminar post">
-                  🗑️ Eliminar
-                </button>
-              </form>
-            </article>
-          ))}
-        </div>
-      )}
-
-      {deleteResult?.error && (
-        <div class="error">
-          Error al eliminar: {deleteResult.error.message}
-        </div>
-      )}
-      {deleteResult?.data && (
-        <div class="success">
-          ✅ Post eliminado correctamente
-        </div>
-      )}
+      <h2>📋 Posts Existentes (<span id="postCount">0</span>)</h2>
+      <div id="postsList">
+        <p class="loading">Cargando posts...</p>
+      </div>
     </section>
 
     <!-- ============ SECCIÓN EDUCATIVA ============ -->
     <section class="info">
       <h2>💡 ¿Cómo funciona?</h2>
       <ul>
-        <li>Cada <code>&lt;form&gt;</code> tiene su propio <code>action=&#123;actions.postsXXX&#125;</code></li>
-        <li>Al enviar, Astro ejecuta la action correspondiente en el servidor</li>
-        <li>Usamos <code>Astro.getActionResult()</code> para obtener el resultado</li>
-        <li>Los posts se guardan en memoria del servidor (se resetean al reiniciar)</li>
+        <li>Las actions se llaman con <code>actions.postsCreate(...)</code> desde JavaScript</li>
+        <li>No hay recarga de página - todo es asíncrono</li>
+        <li>Cada action devuelve <code>&#123; data, error &#125;</code></li>
+        <li>La lista se actualiza automáticamente después de cada operación</li>
       </ul>
 
       <h3>Código clave:</h3>
-      <pre><code>{`// En el frontmatter (---)
-const createResult = Astro.getActionResult(actions.postsCreate);
-const updateResult = Astro.getActionResult(actions.postsUpdate);
-const deleteResult = Astro.getActionResult(actions.postsDelete);
+      <pre><code>{`// En el <script>
+import { actions } from 'astro:actions';
 
-// En el HTML
-<form method="POST" action={actions.postsCreate}>
-<form method="POST" action={actions.postsUpdate}>
-<form method="POST" action={actions.postsDelete}>`}</code></pre>
+// Crear
+const { data, error } = await actions.postsCreate({
+  titulo: 'Mi post',
+  contenido: 'Contenido...'
+});
+
+// Eliminar
+await actions.postsDelete({ id: '123' });
+
+// Listar
+const { data } = await actions.postsList();`}</code></pre>
     </section>
 
     <a href="/" class="back-link">← Volver al inicio</a>
   </main>
 </Layout>
+
+<script>
+  import { actions } from 'astro:actions';
+
+  // Referencias DOM
+  const createForm = document.getElementById('createForm') as HTMLFormElement;
+  const createResult = document.getElementById('createResult') as HTMLDivElement;
+  const updateForm = document.getElementById('updateForm') as HTMLFormElement;
+  const updateResult = document.getElementById('updateResult') as HTMLDivElement;
+  const editSelect = document.getElementById('edit-id') as HTMLSelectElement;
+  const editTitulo = document.getElementById('edit-titulo') as HTMLInputElement;
+  const editContenido = document.getElementById('edit-contenido') as HTMLTextAreaElement;
+  const postsList = document.getElementById('postsList') as HTMLDivElement;
+  const postCount = document.getElementById('postCount') as HTMLSpanElement;
+
+  // ============ CARGAR Y RENDERIZAR POSTS ============
+  async function loadPosts() {
+    const { data, error } = await actions.postsList();
+
+    if (error) {
+      postsList.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+      return;
+    }
+
+    const posts = data.posts;
+    postCount.textContent = String(posts.length);
+
+    // Actualizar select de edición
+    editSelect.innerHTML = posts.length === 0
+      ? '<option value="">No hay posts</option>'
+      : '<option value="">Selecciona un post...</option>' +
+        posts.map(p => `<option value="${p.id}">${p.titulo}</option>`).join('');
+
+    // Renderizar lista
+    if (posts.length === 0) {
+      postsList.innerHTML = '<p class="empty">No hay posts. ¡Crea uno arriba!</p>';
+      return;
+    }
+
+    postsList.innerHTML = posts.map(post => `
+      <article class="post-item" data-id="${post.id}">
+        <div class="post-content">
+          <h3>${post.titulo}</h3>
+          <p>${post.contenido}</p>
+          <small>ID: ${post.id}</small>
+        </div>
+        <button class="btn-danger delete-btn" data-id="${post.id}">
+          🗑️ Eliminar
+        </button>
+      </article>
+    `).join('');
+
+    // Agregar listeners a botones de eliminar
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', handleDelete);
+    });
+  }
+
+  // ============ CREAR POST ============
+  createForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(createForm);
+    const titulo = formData.get('titulo') as string;
+    const contenido = formData.get('contenido') as string;
+
+    createResult.innerHTML = '<p class="loading">Creando...</p>';
+
+    const { data, error } = await actions.postsCreate({ titulo, contenido });
+
+    if (error) {
+      createResult.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+      return;
+    }
+
+    createResult.innerHTML = `<div class="success">✅ Post creado: "${data.post.titulo}"</div>`;
+    createForm.reset();
+
+    // Recargar lista
+    await loadPosts();
+
+    // Limpiar mensaje después de 3s
+    setTimeout(() => { createResult.innerHTML = ''; }, 3000);
+  });
+
+  // ============ CARGAR DATOS AL SELECCIONAR POST ============
+  editSelect.addEventListener('change', async () => {
+    const id = editSelect.value;
+    if (!id) {
+      editTitulo.value = '';
+      editContenido.value = '';
+      return;
+    }
+
+    const { data, error } = await actions.postsGet({ id });
+
+    if (error) {
+      updateResult.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+      return;
+    }
+
+    editTitulo.value = data.post.titulo;
+    editContenido.value = data.post.contenido;
+  });
+
+  // ============ ACTUALIZAR POST ============
+  updateForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(updateForm);
+    const id = formData.get('id') as string;
+    const titulo = formData.get('titulo') as string;
+    const contenido = formData.get('contenido') as string;
+
+    if (!id) {
+      updateResult.innerHTML = '<div class="error">❌ Selecciona un post primero</div>';
+      return;
+    }
+
+    updateResult.innerHTML = '<p class="loading">Actualizando...</p>';
+
+    const { data, error } = await actions.postsUpdate({ id, titulo, contenido });
+
+    if (error) {
+      updateResult.innerHTML = `<div class="error">❌ ${error.message}</div>`;
+      return;
+    }
+
+    updateResult.innerHTML = `<div class="success">✅ Post actualizado: "${data.post.titulo}"</div>`;
+    updateForm.reset();
+
+    // Recargar lista
+    await loadPosts();
+
+    setTimeout(() => { updateResult.innerHTML = ''; }, 3000);
+  });
+
+  // ============ ELIMINAR POST ============
+  async function handleDelete(e: Event) {
+    const btn = e.target as HTMLButtonElement;
+    const id = btn.dataset.id!;
+
+    if (!confirm('¿Eliminar este post?')) return;
+
+    btn.disabled = true;
+    btn.textContent = '⏳';
+
+    const { error } = await actions.postsDelete({ id });
+
+    if (error) {
+      alert(`Error: ${error.message}`);
+      btn.disabled = false;
+      btn.textContent = '🗑️ Eliminar';
+      return;
+    }
+
+    // Recargar lista
+    await loadPosts();
+  }
+
+  // ============ CARGAR AL INICIO ============
+  loadPosts();
+</script>
 
 <style>
   main {
@@ -197,12 +294,6 @@ const deleteResult = Astro.getActionResult(actions.postsDelete);
   .intro {
     color: #666;
     margin-bottom: 2rem;
-  }
-
-  .intro code {
-    background: #f0f0f0;
-    padding: 0.2rem 0.4rem;
-    border-radius: 4px;
   }
 
   .grid {
@@ -244,6 +335,7 @@ const deleteResult = Astro.getActionResult(actions.postsDelete);
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 1rem;
+    box-sizing: border-box;
   }
 
   button {
@@ -255,12 +347,17 @@ const deleteResult = Astro.getActionResult(actions.postsDelete);
     font-weight: 500;
   }
 
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   .btn-primary {
     background: #0066cc;
     color: white;
   }
 
-  .btn-primary:hover {
+  .btn-primary:hover:not(:disabled) {
     background: #0055aa;
   }
 
@@ -269,7 +366,7 @@ const deleteResult = Astro.getActionResult(actions.postsDelete);
     color: white;
   }
 
-  .btn-warning:hover {
+  .btn-warning:hover:not(:disabled) {
     background: #dd8800;
   }
 
@@ -278,7 +375,7 @@ const deleteResult = Astro.getActionResult(actions.postsDelete);
     color: white;
   }
 
-  .btn-danger:hover {
+  .btn-danger:hover:not(:disabled) {
     background: #bb2d3b;
   }
 
@@ -298,6 +395,11 @@ const deleteResult = Astro.getActionResult(actions.postsDelete);
     border-radius: 4px;
   }
 
+  .loading {
+    color: #666;
+    font-style: italic;
+  }
+
   .posts-list {
     background: #f9f9f9;
     border-radius: 8px;
@@ -314,12 +416,6 @@ const deleteResult = Astro.getActionResult(actions.postsDelete);
     font-style: italic;
   }
 
-  .posts {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
   .post-item {
     display: flex;
     justify-content: space-between;
@@ -328,6 +424,11 @@ const deleteResult = Astro.getActionResult(actions.postsDelete);
     padding: 1rem;
     border-radius: 6px;
     border: 1px solid #eee;
+    margin-bottom: 1rem;
+  }
+
+  .post-item:last-child {
+    margin-bottom: 0;
   }
 
   .post-content {
@@ -347,10 +448,6 @@ const deleteResult = Astro.getActionResult(actions.postsDelete);
   .post-content small {
     color: #999;
     font-family: monospace;
-  }
-
-  .delete-form {
-    margin-left: 1rem;
   }
 
   .info {
