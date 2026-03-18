@@ -1,0 +1,23 @@
+{
+  "skill_name": "astro-action-reload",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to add a contact form to my Astro site. When someone submits it, the page should reload and show a success message. The form has name, email, and message fields. I don't want to use JavaScript for the submission - it should work with just HTML.",
+      "expected_output": "A form-based action with accept: 'form', the page uses Astro.getActionResult() to show success/error, form has method POST and action attribute",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "My form submission works but the URL shows ?_action=submitContact after submit and I don't like that. How can I make the URL clean after the form is submitted? I still want to show the success message.",
+      "expected_output": "POST-Redirect-GET pattern implementation with temporary cookie to store result, redirect after success, cookie helper functions",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Create a login form for my Astro app. When the user logs in successfully, they should be redirected to /dashboard. If login fails, show an error message on the same page. Use cookies for the session.",
+      "expected_output": "Login action with accept: 'form', sets session cookie on success, page redirects to /dashboard on success, shows error message on failure",
+      "files": []
+    }
+  ]
+}
