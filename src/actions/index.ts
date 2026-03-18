@@ -2,11 +2,11 @@ import { defineAction, ActionError } from 'astro:actions';
 import { z } from 'astro/zod';
 import { findUser, createSession, destroySession } from '../lib/auth';
 import { AUTH_COOKIE, mockBackendLogin, mockBackendRequest } from '../lib/api';
-import { posts } from './posts';
+import { postsActions } from './posts';
 
 export const server = {
   // ==================== POSTS CRUD ====================
-  posts,
+  ...postsActions,
 
   // ==================== APP (Con Middleware) ====================
 

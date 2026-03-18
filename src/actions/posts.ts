@@ -2,9 +2,10 @@ import { defineAction, ActionError } from 'astro:actions';
 import { z } from 'astro/zod';
 import { getAllPosts, getPostById, createPost, updatePost, deletePost } from '../lib/db';
 
-export const posts = {
+// Actions en el nivel raíz (Astro no soporta anidamiento profundo)
+export const postsActions = {
   // Listar todos los posts
-  list: defineAction({
+  postsList: defineAction({
     handler: async () => {
       const posts = getAllPosts();
       return { posts };
@@ -12,7 +13,7 @@ export const posts = {
   }),
 
   // Obtener un post por ID
-  get: defineAction({
+  postsGet: defineAction({
     input: z.object({
       id: z.string().min(1, 'El ID es requerido'),
     }),
@@ -29,7 +30,7 @@ export const posts = {
   }),
 
   // Crear un nuevo post (desde formulario)
-  create: defineAction({
+  postsCreate: defineAction({
     accept: 'form',
     input: z.object({
       titulo: z.string().min(1, 'El título es requerido').max(100, 'Máximo 100 caracteres'),
@@ -42,7 +43,7 @@ export const posts = {
   }),
 
   // Actualizar un post existente (desde formulario)
-  update: defineAction({
+  postsUpdate: defineAction({
     accept: 'form',
     input: z.object({
       id: z.string().min(1, 'El ID es requerido'),
@@ -62,7 +63,7 @@ export const posts = {
   }),
 
   // Eliminar un post (desde formulario con solo el ID)
-  delete: defineAction({
+  postsDelete: defineAction({
     accept: 'form',
     input: z.object({
       id: z.string().min(1, 'El ID es requerido'),

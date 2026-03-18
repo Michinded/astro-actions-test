@@ -7,9 +7,9 @@ import { getAllPosts } from '../lib/db';
 const posts = getAllPosts();
 
 // Manejar resultados de actions (form POST tradicional)
-const createResult = Astro.getActionResult(actions.posts.create);
-const updateResult = Astro.getActionResult(actions.posts.update);
-const deleteResult = Astro.getActionResult(actions.posts.delete);
+const createResult = Astro.getActionResult(actions.postsCreate);
+const updateResult = Astro.getActionResult(actions.postsUpdate);
+const deleteResult = Astro.getActionResult(actions.postsDelete);
 
 // Recargar posts después de cualquier acción exitosa
 const currentPosts = (createResult?.data || updateResult?.data || deleteResult?.data)
@@ -29,7 +29,7 @@ const currentPosts = (createResult?.data || updateResult?.data || deleteResult?.
       <!-- ============ FORMULARIO 1: CREAR POST ============ -->
       <section class="card">
         <h2>📝 Crear Nuevo Post</h2>
-        <form method="POST" action={actions.posts.create}>
+        <form method="POST" action={actions.postsCreate}>
           <div class="field">
             <label for="create-titulo">Título:</label>
             <input
@@ -69,7 +69,7 @@ const currentPosts = (createResult?.data || updateResult?.data || deleteResult?.
       <!-- ============ FORMULARIO 2: EDITAR POST ============ -->
       <section class="card">
         <h2>✏️ Editar Post</h2>
-        <form method="POST" action={actions.posts.update}>
+        <form method="POST" action={actions.postsUpdate}>
           <div class="field">
             <label for="edit-id">ID del Post:</label>
             <select id="edit-id" name="id" required>
@@ -133,7 +133,7 @@ const currentPosts = (createResult?.data || updateResult?.data || deleteResult?.
               </div>
 
               <!-- FORMULARIO 3: ELIMINAR (uno por cada post) -->
-              <form method="POST" action={actions.posts.delete} class="delete-form">
+              <form method="POST" action={actions.postsDelete} class="delete-form">
                 <input type="hidden" name="id" value={post.id} />
                 <button type="submit" class="btn-danger" title="Eliminar post">
                   🗑️ Eliminar
@@ -160,7 +160,7 @@ const currentPosts = (createResult?.data || updateResult?.data || deleteResult?.
     <section class="info">
       <h2>💡 ¿Cómo funciona?</h2>
       <ul>
-        <li>Cada <code>&lt;form&gt;</code> tiene su propio <code>action={actions.posts.XXX}</code></li>
+        <li>Cada <code>&lt;form&gt;</code> tiene su propio <code>action=&#123;actions.postsXXX&#125;</code></li>
         <li>Al enviar, Astro ejecuta la action correspondiente en el servidor</li>
         <li>Usamos <code>Astro.getActionResult()</code> para obtener el resultado</li>
         <li>Los posts se guardan en memoria del servidor (se resetean al reiniciar)</li>
@@ -168,14 +168,14 @@ const currentPosts = (createResult?.data || updateResult?.data || deleteResult?.
 
       <h3>Código clave:</h3>
       <pre><code>{`// En el frontmatter (---)
-const createResult = Astro.getActionResult(actions.posts.create);
-const updateResult = Astro.getActionResult(actions.posts.update);
-const deleteResult = Astro.getActionResult(actions.posts.delete);
+const createResult = Astro.getActionResult(actions.postsCreate);
+const updateResult = Astro.getActionResult(actions.postsUpdate);
+const deleteResult = Astro.getActionResult(actions.postsDelete);
 
 // En el HTML
-<form method="POST" action={actions.posts.create}>
-<form method="POST" action={actions.posts.update}>
-<form method="POST" action={actions.posts.delete}>`}</code></pre>
+<form method="POST" action={actions.postsCreate}>
+<form method="POST" action={actions.postsUpdate}>
+<form method="POST" action={actions.postsDelete}>`}</code></pre>
     </section>
 
     <a href="/" class="back-link">← Volver al inicio</a>
