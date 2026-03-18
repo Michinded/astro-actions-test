@@ -31,6 +31,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   // Decodificar token para obtener datos del usuario
+  // NOTA: En producción, aquí se validaría el token contra el backend
+  // o se verificaría la expiración con isTokenExpired(token).
+  // En este ejemplo, la cookie expira automáticamente (maxAge en AUTH_COOKIE).
   const payload = decodeJWT(token);
 
   if (!payload) {
