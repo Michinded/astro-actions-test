@@ -385,6 +385,273 @@ import Layout from '../layouts/Layout.astro';
 
 ---
 
+## Advanced: Multi-Action Page with Full CRUD
+
+For complex pages with multiple forms, edit functionality, and shared state (like an admin panel), use this pattern:
+
+### Page Structure
+
+```astro
+---
+// src/pages/posts-demo.astro
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="CRUD Demo">
+  <main>
+    <h1>Posts Manager</h1>
+
+    <div class="grid">
+      <!-- ============ CREATE FORM ============ -->
+      <section class="card">
+        <h2>Create New Post</h2>
+        <form id="createForm">
+          <div class="field">
+            <label for="create-titulo">Title:</label>
+            <input type="text" id="create-titulo" name="titulo" required />
+          </div>
+          <div class="field">
+            <label for="create-contenido">Content:</label>
+            <textarea id="create-contenido" name="contenido" required></textarea>
+          </div>
+          <button type="submit">Create Post</button>
+        </form>
+        <div id="createResult"></div>
+      </section>
+
+      <!-- ============ EDIT FORM ============ -->
+      <section class="card">
+        <h2>Edit Post</h2>
+        <form id="updateForm">
+          <div class="field">
+            <label for="edit-id">Select post:</label>
+            <select id="edit-id" name="id" required>
+              <option value="">Loading...</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="edit-titulo">New Title:</label>
+            <input type="text" id="edit-titulo" name="titulo" required />
+          </div>
+          <div class="field">
+            <label for="edit-contenido">New Content:</label>
+            <textarea id="edit-contenido" name="contenido" required></textarea>
+          </div>
+          <button type="submit">Update Post</button>
+        </form>
+        <div id="updateResult"></div>
+      </section>
+    </div>
+
+    <!-- ============ POSTS LIST ============ -->
+    <section class="posts-list">
+      <h2>Existing Posts (<span id="postCount">0</span>)</h2>
+      <div id="postsList">
+        <p class="loading">Loading posts...</p>
+      </div>
+    </section>
+  </main>
+</Layout>
+```
+
+### JavaScript: Managing Multiple Actions
+
+```astro
+<script>
+  import { actions } from 'astro:actions';
+
+  // ============ DOM REFERENCES ============
+  const createForm = document.getElementById('createForm') as HTMLFormElement;
+  const createResult = document.getElementById('createResult') as HTMLDivElement;
+  const updateForm = document.getElementById('updateForm') as HTMLFormElement;
+  const updateResult = document.getElementById('updateResult') as HTMLDivElement;
+  const editSelect = document.getElementById('edit-id') as HTMLSelectElement;
+  const editTitulo = document.getElementById('edit-titulo') as HTMLInputElement;
+  const editContenido = document.getElementById('edit-contenido') as HTMLTextAreaElement;
+  const postsList = document.getElementById('postsList') as HTMLDivElement;
+  const postCount = document.getElementById('postCount') as HTMLSpanElement;
+
+  // ============ SHARED: LOAD AND RENDER POSTS ============
+  async function loadPosts() {
+    const { data, error } = await actions.postsList();
+
+    if (error) {
+      postsList.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+      return;
+    }
+
+    const posts = data.posts;
+    postCount.textContent = String(posts.length);
+
+    // Update edit dropdown
+    editSelect.innerHTML = posts.length === 0
+      ? '<option value="">No posts available</option>'
+      : '<option value="">Select a post...</option>' +
+        posts.map(p => `<option value="${p.id}">${p.titulo}</option>`).join('');
+
+    // Render posts list
+    if (posts.length === 0) {
+      postsList.innerHTML = '<p class="empty">No posts yet. Create one above!</p>';
+      return;
+    }
+
+    postsList.innerHTML = posts.map(post => `
+      <article class="post-item" data-id="${post.id}">
+        <div class="post-content">
+          <h3>${post.titulo}</h3>
+          <p>${post.contenido}</p>
+          <small>ID: ${post.id}</small>
+        </div>
+        <button class="btn-danger delete-btn" data-id="${post.id}">
+          Delete
+        </button>
+      </article>
+    `).join('');
+
+    // Attach delete handlers to new buttons
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', handleDelete);
+    });
+  }
+
+  // ============ CREATE POST ============
+  createForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(createForm);
+    const titulo = formData.get('titulo') as string;
+    const contenido = formData.get('contenido') as string;
+
+    createResult.innerHTML = '<p class="loading">Creating...</p>';
+
+    const { data, error } = await actions.postsCreate({ titulo, contenido });
+
+    if (error) {
+      createResult.innerHTML = `<div class="error">${error.message}</div>`;
+      return;
+    }
+
+    createResult.innerHTML = `<div class="success">Created: "${data.post.titulo}"</div>`;
+    createForm.reset();
+
+    // Refresh the list
+    await loadPosts();
+
+    // Clear success message after 3s
+    setTimeout(() => { createResult.innerHTML = ''; }, 3000);
+  });
+
+  // ============ LOAD DATA WHEN SELECTING POST TO EDIT ============
+  editSelect.addEventListener('change', async () => {
+    const id = editSelect.value;
+
+    if (!id) {
+      editTitulo.value = '';
+      editContenido.value = '';
+      return;
+    }
+
+    const { data, error } = await actions.postsGet({ id });
+
+    if (error) {
+      updateResult.innerHTML = `<div class="error">${error.message}</div>`;
+      return;
+    }
+
+    // Populate edit form with current data
+    editTitulo.value = data.post.titulo;
+    editContenido.value = data.post.contenido;
+  });
+
+  // ============ UPDATE POST ============
+  updateForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(updateForm);
+    const id = formData.get('id') as string;
+    const titulo = formData.get('titulo') as string;
+    const contenido = formData.get('contenido') as string;
+
+    if (!id) {
+      updateResult.innerHTML = '<div class="error">Select a post first</div>';
+      return;
+    }
+
+    updateResult.innerHTML = '<p class="loading">Updating...</p>';
+
+    const { data, error } = await actions.postsUpdate({ id, titulo, contenido });
+
+    if (error) {
+      updateResult.innerHTML = `<div class="error">${error.message}</div>`;
+      return;
+    }
+
+    updateResult.innerHTML = `<div class="success">Updated: "${data.post.titulo}"</div>`;
+    updateForm.reset();
+
+    // Refresh the list
+    await loadPosts();
+
+    setTimeout(() => { updateResult.innerHTML = ''; }, 3000);
+  });
+
+  // ============ DELETE POST ============
+  async function handleDelete(e: Event) {
+    const btn = e.target as HTMLButtonElement;
+    const id = btn.dataset.id!;
+
+    if (!confirm('Delete this post?')) return;
+
+    // Show loading state on button
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    const { error } = await actions.postsDelete({ id });
+
+    if (error) {
+      alert(`Error: ${error.message}`);
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+      return;
+    }
+
+    // Refresh the list (button will be gone)
+    await loadPosts();
+  }
+
+  // ============ INITIAL LOAD ============
+  loadPosts();
+</script>
+```
+
+### Key Patterns for Multi-Action Pages
+
+**1. Shared `loadPosts()` function:**
+- Called on initial page load
+- Called after every create/update/delete
+- Updates both the list AND the edit dropdown
+
+**2. Dynamic event listeners:**
+- Delete buttons are rendered dynamically
+- Must re-attach event listeners after each `loadPosts()`
+- Use `document.querySelectorAll('.delete-btn').forEach(...)`
+
+**3. Edit form with data loading:**
+- Select dropdown triggers `postsGet` action
+- Populate input fields with current values
+- User modifies and submits
+
+**4. Separate result containers:**
+- Each form has its own `<div id="...Result">`
+- Loading/success/error states don't interfere
+
+**5. Auto-clear success messages:**
+```javascript
+setTimeout(() => { createResult.innerHTML = ''; }, 3000);
+```
+
+---
+
 ## Error Handling
 
 Always use `ActionError` for JavaScript actions:

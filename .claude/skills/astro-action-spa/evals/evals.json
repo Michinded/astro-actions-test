@@ -18,6 +18,12 @@
       "prompt": "I have an Astro action that calls an external API and sometimes fails. How do I properly handle errors with ActionError and show them to the user? The action should return a proper error code when the API fails.",
       "expected_output": "Action uses ActionError with code and message, handler catches API failures and throws ActionError, client-side checks error.code and error.message, user-friendly error display",
       "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "I need a full admin page for managing blog posts in Astro. The page should have: 1) A form to create new posts with title and content, 2) A dropdown to select and edit existing posts (load data when selected), 3) A list showing all posts with delete buttons, 4) Everything should work without page reload and the list should refresh after any operation.",
+      "expected_output": "Multi-action page with create form, edit form with select dropdown, posts list with delete buttons. Shared loadPosts() function called on init and after each operation. postsGet action called on select change to populate edit fields. Dynamic event listeners for delete buttons. Separate result containers for each form.",
+      "files": []
     }
   ]
 }
