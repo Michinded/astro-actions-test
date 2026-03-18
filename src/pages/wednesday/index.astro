@@ -1,0 +1,17 @@
+---
+// Esta página actúa como "puerta de entrada"
+// El middleware la intercepta y redirige según el día
+export const prerender = false;
+
+// Esta página nunca se renderiza realmente porque el middleware
+// siempre redirige a /wednesday/itswednesday o /wednesday/no-access
+---
+
+<html>
+  <head>
+    <title>Checking day...</title>
+  </head>
+  <body>
+    <p>Verificando el día...</p>
+  </body>
+</html>

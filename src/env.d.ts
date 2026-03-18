@@ -7,5 +7,8 @@ declare namespace App {
       id: string;
       username: string;
     };
+    // Wednesday middleware
+    dayOfWeek?: number;
+    isWednesday?: boolean;
   }
 }

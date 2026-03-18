@@ -1,0 +1,85 @@
+---
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+
+// Datos del middleware (opcional, para mostrar info)
+const { dayOfWeek, isWednesday } = Astro.locals;
+
+const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const todayName = dayNames[new Date().getDay()];
+---
+
+<Layout>
+  <main>
+    <div class="container">
+      <div class="frog">🐸</div>
+      <h1>It is Wednesday, my dudes!</h1>
+      <p class="subtitle">Hoy es <strong>{todayName}</strong></p>
+      <p class="message">
+        Bienvenido! Tienes acceso porque hoy es miércoles.
+      </p>
+      <a href="/" class="back-link">← Volver al inicio</a>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  main {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%);
+  }
+
+  .container {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+  }
+
+  .frog {
+    font-size: 6rem;
+    margin-bottom: 1rem;
+    animation: bounce 1s ease infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+
+  h1 {
+    color: #2e7d32;
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    color: #666;
+    margin: 0 0 1.5rem 0;
+    font-size: 1.1rem;
+  }
+
+  .message {
+    background: #e8f5e9;
+    padding: 1rem;
+    border-radius: 10px;
+    color: #1b5e20;
+    margin-bottom: 1.5rem;
+  }
+
+  .back-link {
+    color: #2e7d32;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+</style>

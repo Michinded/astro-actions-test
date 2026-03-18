@@ -1,0 +1,91 @@
+---
+export const prerender = false;
+
+import Layout from '../../layouts/Layout.astro';
+
+const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const today = new Date();
+const todayName = dayNames[today.getDay()];
+
+// Calcular días hasta el próximo miércoles
+const daysUntilWednesday = (3 - today.getDay() + 7) % 7 || 7;
+---
+
+<Layout>
+  <main>
+    <div class="container">
+      <div class="icon">🚫</div>
+      <h1>Acceso Denegado</h1>
+      <p class="subtitle">Hoy es <strong>{todayName}</strong></p>
+      <p class="message">
+        Lo sentimos, esta página solo está disponible los <strong>Miércoles</strong>.
+      </p>
+      <p class="countdown">
+        Faltan <strong>{daysUntilWednesday}</strong> día{daysUntilWednesday > 1 ? 's' : ''} para el próximo miércoles.
+      </p>
+      <a href="/" class="back-link">← Volver al inicio</a>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  main {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #c62828 0%, #ef5350 100%);
+  }
+
+  .container {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+  }
+
+  .icon {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    color: #c62828;
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    color: #666;
+    margin: 0 0 1.5rem 0;
+    font-size: 1.1rem;
+  }
+
+  .message {
+    background: #ffebee;
+    padding: 1rem;
+    border-radius: 10px;
+    color: #b71c1c;
+    margin-bottom: 1rem;
+  }
+
+  .countdown {
+    background: #fff3e0;
+    padding: 1rem;
+    border-radius: 10px;
+    color: #e65100;
+    margin-bottom: 1.5rem;
+  }
+
+  .back-link {
+    color: #c62828;
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+</style>
