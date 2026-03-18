@@ -1,0 +1,29 @@
+{
+  "skill_name": "astro-cookies",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Necesito crear una cookie de sesión segura en Astro para guardar un token de autenticación. La cookie no debe ser accesible desde JavaScript y debe funcionar en desarrollo con HTTP.",
+      "expected_output": "Cookie configuration with httpOnly: true, sameSite: strict, secure: false (for HTTP), path: /, maxAge set. Comment indicating to change secure to true for HTTPS.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Quiero guardar el nombre del usuario en una cookie para mostrarlo en el frontend con JavaScript. ¿Cómo configuro una cookie que sea accesible desde el cliente?",
+      "expected_output": "Cookie with httpOnly: false to allow JS access, note that it should NOT contain sensitive data, JSON.stringify for the value, client-side getCookie helper function",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Crea un sistema de cookies centralizado con diferentes tipos: sesión (segura), datos de UI (accesible), y temporal para flash messages. Quiero helpers para leer y escribir.",
+      "expected_output": "COOKIES object with SESSION (httpOnly), USER_DATA (not httpOnly), ACTION_RESULT (short maxAge). Helper functions setActionResult, getActionResult, clearAllSessionCookies. Comments about secure flag.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "¿Cuál es la diferencia entre secure: true y secure: false en cookies? Estoy desarrollando en localhost sin HTTPS.",
+      "expected_output": "Explanation that secure: true only sends cookie over HTTPS, secure: false allows HTTP. For localhost development use false, for production HTTPS use true. Show import.meta.env.PROD pattern for auto-detection.",
+      "files": []
+    }
+  ]
+}
